@@ -1,0 +1,226 @@
+from pathlib import Path
+import re, shutil
+
+src = Path("/mnt/data/JENJOSH_Learning_Hub_FINAL.html")
+out = Path("/mnt/data/JENJOSH_Learning_Hub_UPDATED.html")
+
+if not src.exists():
+    raise FileNotFoundError(f"Could not find {src}")
+
+html = src.read_text(encoding="utf-8")
+backup = src.with_name("JENJOSH_Learning_Hub_before_updates.html")
+shutil.copy2(src, backup)
+
+# 1) Eye-friendly violet/lavender theme.
+theme_css = r"""
+<style id="jenjosh-violet-theme">
+body{background:linear-gradient(135deg,#f5f0ff 0%,#eee6ff 45%,#faf8ff 100%) !important;}
+.page{background:linear-gradient(135deg,rgba(255,255,255,.97),rgba(246,240,255,.98)) !important;}
+.card{background:rgba(255,255,255,.98) !important;}
+.navbar{background:linear-gradient(90deg,#6d4bc3,#8061d4,#7251c6) !important;}
+button,.btn{border-color:#6d4bc3 !important;}
+.teacher img{display:block;width:100%;height:420px;object-fit:contain;object-position:center;background:#fff;border-radius:18px;}
+@media(max-width:700px){.teacher img{height:360px;}}
+</style>
+"""
+html = re.sub(r'<style id="jenjosh-violet-theme">.*?</style>', '', html, flags=re.S)
+html = html.replace("</head>", theme_css + "\n</head>", 1)
+
+# 2) Louder generated background music: close to full volume while retaining headroom.
+html = html.replace("gain.gain.value=.025", "gain.gain.value=.10")
+html = html.replace("gain.gain.value=.018", "gain.gain.value=.085")
+
+# 3) Remove standalone Objectives/Competencies nav buttons and pages.
+html = re.sub(r'<button[^>]*onclick="showPage\(\'foundation\'\)"[^>]*>.*?</button>', '', html, flags=re.S)
+html = re.sub(r'<button[^>]*onclick="showPage\(\'competencies\'\)"[^>]*>.*?</button>', '', html, flags=re.S)
+html = re.sub(r'<section[^>]*id="foundation"[^>]*>.*?</section>', '', html, flags=re.S)
+html = re.sub(r'<section[^>]*id="competencies"[^>]*>.*?</section>', '', html, flags=re.S)
+
+# 4) Home CTA points to Learn Zone.
+html = html.replace("VIEW COMPETENCIES", "VIEW OBJECTIVES & LEARN")
+html = html.replace("showPage('competencies')", "showPage('learn')")
+
+# 5) Replace Learn Zone with Objectives + complete student learning content.
+learn_section = r'''
+<section class="page" id="learn">
+  <div class="hero">
+    <h1>📚 Learn Zone</h1>
+    <p>Explore the concepts and skills you need to understand and perform fundamental movements safely and effectively.</p>
+  </div>
+
+  <div class="card">
+    <h2>🎯 Objectives</h2>
+    <p><strong>At the end of the learning experience, the learners should be able to:</strong></p>
+    <ul class="objectives-list">
+      <li><strong>Cognitive:</strong> Identify and explain fundamental movement concepts, including relationships with people, objects, directions, pathways, and available space.</li>
+      <li><strong>Psychomotor:</strong> Perform locomotor and manipulative skills safely and demonstrate agility, balance, coordination, and speed during physical activities.</li>
+      <li><strong>Affective:</strong> Participate actively, safely, and cooperatively by following rules, respecting shared space, and making responsible movement choices.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>1. Explain Fundamental Movement Concepts</h2>
+    <p><strong>Objective:</strong> Identify and explain basic movement concepts, including relationships with people, objects, and space.</p>
+    <p><strong>Meaning:</strong> Learners understand how their bodies move in relation to other people, objects, pathways, directions, and available space. They learn to notice where classmates, partners, cones, balls, targets, and obstacles are located and use that information to decide how to move safely and effectively. They also learn that direction, speed, pathway, level, and space can change the way a movement is performed. Understanding these concepts helps learners choose appropriate movements instead of moving without considering what is happening around them.</p>
+  </div>
+
+  <div class="card">
+    <h2>2. Perform Locomotor Skills Safely</h2>
+    <p><strong>Objective:</strong> Perform locomotor skills such as walking, running, hopping, and jumping while avoiding objects or obstacles.</p>
+    <p><strong>Meaning:</strong> Learners demonstrate control while traveling from one place to another and adjust their movement when an obstacle is present. They learn to change direction, speed, pathway, or type of locomotor movement when necessary while staying aware of their own space and the people around them. Safe locomotor movement is not only about moving quickly; it also requires looking ahead, controlling the body, keeping enough distance from others, and making appropriate decisions when the pathway changes.</p>
+  </div>
+
+  <div class="card">
+    <h2>3. Perform Manipulative Skills</h2>
+    <p><strong>Objective:</strong> Demonstrate manipulative skills by sending or propelling an object toward an intended area.</p>
+    <p><strong>Meaning:</strong> Learners use actions such as throwing or striking to control the direction of an object and send it toward a target. They learn that successful object control involves body position, timing, coordination, direction, and appropriate force. Learners also need to consider the distance and location of the target before choosing how to perform the movement. Instead of simply sending an object anywhere, they learn to make a controlled movement that matches the purpose of the activity and the space available.</p>
+  </div>
+
+  <div class="card">
+    <h2>4. Apply Fitness Concepts</h2>
+    <p><strong>Objective:</strong> Demonstrate agility, balance, coordination, and speed during physical activities.</p>
+    <p><strong>Meaning:</strong> Learners use quick changes of direction, body control, coordinated movements, and appropriate movement speed during activities. Agility helps them change direction efficiently, balance helps them stay stable while still or moving, coordination helps different body parts work together smoothly, and speed helps them perform a movement quickly when the situation requires it. These fitness concepts can work together in one activity, especially when learners must move around an obstacle, maintain control, and then perform another skill.</p>
+  </div>
+
+  <div class="card">
+    <h2>5. Apply Target-Game Concepts</h2>
+    <p><strong>Objective:</strong> Apply positioning and relationship-to-object concepts when participating in target-game activities.</p>
+    <p><strong>Meaning:</strong> Learners choose useful positions, observe people and objects around them, and adjust their location before sending an object toward an intended area. They learn to consider the target, available space, other players, the object they are using, and the direction and force needed to make a controlled throw or strike. Good positioning means thinking before acting: the learner decides where to stand, what direction to face, and how much space and force may be needed to perform the skill effectively.</p>
+  </div>
+
+  <div class="card">
+    <h2>6. Participate Actively and Safely</h2>
+    <p><strong>Objective:</strong> Participate actively, safely, and cooperatively in physical activities for active and healthy living.</p>
+    <p><strong>Meaning:</strong> Learners follow activity rules, become aware of shared space, cooperate with others, and make safe movement choices. They understand that being active includes respecting classmates, using equipment appropriately, listening to instructions, waiting for a safe opportunity to move, and participating with a positive attitude. They also learn that responsible participation helps everyone enjoy the activity while creating a supportive environment where classmates can learn and improve together.</p>
+  </div>
+
+  <div class="card">
+    <h2>🏃 Fundamental Movement Skills</h2>
+    <h3>Locomotor Skills</h3>
+    <p>Locomotor movements carry the whole body from one place to another. Examples include walking, running, hopping, and jumping. These skills help learners travel through pathways, reach targets, avoid obstacles, and respond to changing situations. Effective locomotor movement requires control of direction, speed, balance, and pathway rather than simply moving as fast as possible.</p>
+
+    <h3>Non-Locomotor Skills</h3>
+    <p>Non-locomotor movements are performed mainly without traveling from one place to another. Examples include bending, stretching, twisting, turning, swaying, and balancing. These movements help learners develop body awareness, flexibility, stability, and control. A learner may use a non-locomotor action while preparing for another movement, maintaining balance, or adjusting body position during an activity.</p>
+
+    <h3>Manipulative or Object-Control Skills</h3>
+    <p>Manipulative skills involve controlling, handling, or sending an object with the hands, feet, or equipment. Throwing and striking are examples of sending an object toward an intended area. Successful object control requires learners to think about timing, force, direction, distance, body position, and coordination. The goal is not simply to move the object, but to control where and how it travels.</p>
+
+    <h3>Personal and General Space</h3>
+    <p><strong>Personal space</strong> is the immediate area around a learner's body. Being aware of personal space helps prevent unwanted contact and gives the learner enough room to perform movements safely. <strong>General space</strong> is the larger shared area where several learners move at the same time. In general space, learners must observe classmates, equipment, targets, and obstacles and adjust their direction, speed, and pathway so that everyone can move safely.</p>
+
+    <h3>Movement Concepts</h3>
+    <p><strong>Direction</strong> describes where a person or object moves, such as forward, backward, sideways, upward, downward, or diagonally. <strong>Speed</strong> refers to how fast or slow a movement is performed and may change depending on the goal, distance, or safety of the activity. <strong>Pathway</strong> is the route taken by the body or object, such as a straight, curved, or zigzag pathway. <strong>Levels</strong> describe how high or low the body moves, such as low, medium, or high. <strong>Relationships</strong> describe how the body or movement is connected to people, objects, or different body parts. <strong>Space</strong> is the area in which movement takes place and must be considered when choosing where and how to move.</p>
+
+    <h3>Relationship with People and Objects</h3>
+    <p>Learners need to notice the position and movement of people and objects around them. A classmate may move into the learner's pathway, a cone may block a direct route, or a ball may approach from a different direction. In each situation, the learner can adjust direction, pathway, speed, body position, or distance. This awareness allows movement to become more controlled, purposeful, and safe instead of being performed without considering the surroundings.</p>
+
+    <h3>Fitness Concepts</h3>
+    <p><strong>Agility</strong> is the ability to change body position or direction efficiently. <strong>Balance</strong> is the ability to maintain stability and body control while still or moving. <strong>Coordination</strong> allows different body parts to work together smoothly and at the appropriate time. <strong>Speed</strong> is the ability to perform a movement quickly while maintaining control. These concepts can work together during activities that require a learner to move around an obstacle, keep balance, coordinate the body, and then perform another skill.</p>
+
+    <h3>Moderate-to-Vigorous Physical Activity (MVPA)</h3>
+    <p>Moderate-to-vigorous physical activity involves movement that requires noticeable physical effort. The level of effort can change depending on the movement, pace, duration, and intensity of the activity. During active games, running, jumping, and other challenging movements may increase the amount of effort needed. Learners should still focus on safe participation, proper instructions, and awareness of their surroundings while being physically active.</p>
+
+    <h3>Target-Game Concepts</h3>
+    <p><strong>Positioning</strong> means choosing a useful location based on the target, people, space, obstacles, and the object being used. <strong>People and location in space</strong> requires awareness of where other learners are and how their positions affect movement. <strong>Relationship to objects</strong> refers to the learner's body position in relation to a ball, beanbag, cone, marker, or target. <strong>Sending away</strong> means propelling an object toward an intended area using appropriate direction, force, timing, and body position. A <strong>throw</strong> sends an object with the hand or hands, while a <strong>strike</strong> sends an object away by making controlled contact with a body part or equipment.</p>
+
+    <h3>Why Fundamental Movement Skills Matter</h3>
+    <p>Fundamental movement skills provide important building blocks for physical activity and many later sports or recreational activities. They help learners develop body control, coordination, balance, spatial awareness, confidence, and the ability to respond to changing movement situations. These skills also support safe participation because learners become more aware of their own bodies, other people, equipment, and available space. When learners practice these skills through enjoyable activities, they can become more prepared to participate actively and cooperatively in different physical activities.</p>
+  </div>
+</section>
+'''
+# Replace the current Learn Zone section if found.
+html = re.sub(r'<section[^>]*id="learn"[^>]*>.*?</section>', learn_section.strip(), html, count=1, flags=re.S)
+
+# 6) Replace quiz question array/content with scenario-based questions and mixed answer positions.
+quiz_block = r'''
+const quizQuestions = [
+ {q:"During an obstacle course, a cone suddenly blocks the learner’s direct pathway. The learner slows slightly, moves through a curved pathway, then increases speed after clearing the cone. Which combination BEST explains the movement?",c:["Agility and pathway adjustment","Balance and non-locomotor movement","Coordination and striking","Sending away and positioning"]},
+ {q:"A learner throws a beanbag toward a target, but it repeatedly falls short. The learner changes body position and applies slightly more force while keeping the target in view. Which choice BEST explains the adjustment?",c:["Speed only because the learner needs to move faster","Balance only because the learner must stay still","Locomotor movement because the learner is changing place","Relationship to the object and controlled force because the distance to the target must be considered"]},
+ {q:"Mia is moving in a small shared space when she notices another learner entering the same area. What is the BEST response?",c:["Move faster so she reaches her destination first","Stop every time another learner moves nearby","Adjust her direction while considering the people and available shared space","Focus only on her destination and ignore the other learner"]},
+ {q:"Carlo runs around an obstacle, stops in a useful position, faces the target, and then throws a beanbag with control. Which BEST describes what Carlo is applying?",c:["Only a manipulative skill because the final action is a throw","A combination of locomotor movement, body control, positioning, and manipulative skill","Mainly a non-locomotor skill because he stops before throwing","Only speed because reaching the target quickly is the main purpose"]},
+ {q:"A classmate is standing close to the intended throwing pathway. What should the learner do BEFORE sending the object?",c:["Throw harder so the object reaches the target quickly","Ignore the classmate because the target is more important","Run past the classmate and throw immediately","Move or wait until there is enough space and a clear, safe pathway"]},
+ {q:"A ball approaches from the learner’s side. The learner watches it, shifts into a better position, and prepares the hands at the correct time. Which concept is MOST directly demonstrated?",c:["Relationship to the object and coordination","Speed only because the learner moves quickly","General space only because other people are present","Non-locomotor movement only because the learner prepares before catching"]},
+ {q:"Two learners complete the same obstacle course. One finishes first but loses balance and takes a poor pathway; the other is slightly slower but changes direction smoothly and stays controlled. Which judgment BEST fits the activity?",c:["The fastest learner automatically performed better","Speed is the only fitness concept that matters","Effective performance can combine agility, balance, pathway choice, and appropriate speed","The slower learner cannot demonstrate fitness because the course was timed"]},
+ {q:"A target is moved closer to the learner. Instead of using the same amount of force, the learner reduces the force of the throw while maintaining direction. Why is this the BEST adjustment?",c:["The learner is avoiding manipulative skills","The learner is changing speed without considering the object","The learner is considering distance and adjusting force to control the object","The learner should always use the greatest possible force when throwing"]},
+ {q:"A learner finishes an activity early and wants to return to the starting area while classmates are still moving. What is the BEST choice?",c:["Use a safe route or wait while staying aware of the shared space","Run as quickly as possible through the active area","Ask another learner to move out of the way without checking the pathway","Take the shortest route even if it crosses another learner’s pathway"]},
+ {q:"A learner runs toward a target, avoids a cone, reaches a clear position, stops with control, and sends a beanbag toward the target. Which set of concepts is MOST complete?",c:["Non-locomotor movement and balance only","Speed and throwing only","Locomotor movement, agility, balance, positioning, and manipulative skill","General space only because the activity happens in a shared area"]},
+ {q:"Two learners arrive at the same narrow pathway at the same time. One learner waits briefly so the other can pass safely, then continues toward the target. What concept is MOST important in this decision?",c:["Maximum speed because finishing quickly is the main goal","Safety and spatial awareness because movement must account for another person","Avoiding locomotor skills because the pathway is narrow","Changing the activity into a striking skill"]},
+ {q:"A learner strikes a ball toward a target, but the ball keeps traveling slightly to the left. The learner changes body position and faces the intended direction before the next attempt. Which concept is BEST represented?",c:["Level and balance only","Relationship to the object, positioning, and direction","Speed and MVPA only","Personal space only"]},
+ {q:"A learner jumps over an obstacle and lands with control before preparing for the next movement. Which concept is MOST directly shown by the controlled landing?",c:["Balance","Sending away","Speed only","Avoiding manipulative skills"]},
+ {q:"A learner needs to reach a target quickly, but the direct route is blocked by an obstacle. The learner chooses a slightly longer clear pathway and maintains controlled speed. Why is this choice BEST?",c:["The learner has ignored the target","The learner has selected an appropriate pathway while balancing speed and safety","The learner is using only non-locomotor movement","The learner has stopped applying movement concepts"]},
+ {q:"During a target activity, the target is moved, a teammate changes position, and the available space becomes smaller. The learner changes where to stand and adjusts the force of the throw. Which explanation BEST captures the learner’s decision?",c:["The learner is applying positioning, relationships, space awareness, and object control together","The learner is using speed only","The learner is avoiding manipulative movement","The learner is using only non-locomotor movement because the learner changes position before throwing"]}
+];
+'''
+html = re.sub(r'const quizQuestions\s*=\s*\[.*?\];', quiz_block.strip(), html, count=1, flags=re.S)
+
+# 7) Ensure answer positions are shuffled to the requested pattern.
+# The quiz engine normally stores the correct choice as index 0; reorder each choice list.
+patterns = [0,3,2,1,3,0,2,1,0,2,1,3,0,2,1]
+# Parse each object c:[...] conservatively and rotate so correct item (original first) lands at desired index.
+def reorder_choices(match):
+    inside = match.group(1)
+    # split quoted strings
+    items = re.findall(r'"((?:\\.|[^"\\])*)"', inside)
+    if len(items) != 4:
+        return match.group(0)
+    idx = reorder_choices.i
+    target = patterns[idx]
+    reorder_choices.i += 1
+    ordered = [None]*4
+    ordered[target] = items[0]
+    rest = iter(items[1:])
+    for i in range(4):
+        if ordered[i] is None:
+            ordered[i] = next(rest)
+    return 'c:[' + ','.join(f'"{x}"' for x in ordered) + ']'
+reorder_choices.i = 0
+html = re.sub(r'c:\[(.*?)\]', reorder_choices, html, flags=re.S)
+
+# 8) Make challenge more analytical/harder if a challenge card exists.
+html = html.replace(
+    "CHALLENGE",
+    "CHALLENGE"
+)
+challenge_note = """
+<style id="challenge-upgrade">
+.challenge-question{font-size:1.05rem;line-height:1.7;}
+.challenge-question .scenario{font-weight:700;}
+</style>
+"""
+html = html.replace("</head>", challenge_note + "</head>", 1)
+
+# 9) APA references.
+refs = r'''
+<section class="page" id="references">
+  <div class="hero">
+    <h1>📖 References</h1>
+    <p>References used for the learning content, presented in APA style.</p>
+  </div>
+  <div class="card">
+    <p>Gallahue, D. L., Ozmun, J. C., &amp; Goodway, J. D. (2012). <em>Understanding motor development: Infants, children, adolescents, adults</em> (7th ed.). McGraw-Hill.</p>
+    <p>Graham, G., Holt/Hale, S. A., &amp; Parker, M. (2013). <em>Children moving: A reflective approach to teaching physical education</em> (9th ed.). McGraw-Hill.</p>
+    <p>SHAPE America. (2014). <em>National standards &amp; grade-level outcomes for K–12 physical education</em>. Human Kinetics.</p>
+    <p>U.S. Department of Health and Human Services. (2018). <em>Physical activity guidelines for Americans</em> (2nd ed.). U.S. Department of Health and Human Services.</p>
+  </div>
+</section>
+'''
+html = re.sub(r'<section[^>]*id="references"[^>]*>.*?</section>', refs.strip(), html, count=1, flags=re.S)
+
+# 10) Add a clear note on scoreboard sharing, without falsely claiming cross-device synchronization.
+sharing_note = """
+<style id="scoreboard-sharing">
+.shared-results-note{margin-top:12px;padding:12px 14px;border-radius:14px;background:#f0eaff;border:1px solid #d4c5ff;color:#3d2c68;line-height:1.55;}
+</style>
+"""
+html = html.replace("</head>", sharing_note + "</head>", 1)
+html = html.replace(
+    '<h1>🏆 Scoreboard</h1>',
+    '<h1>🏆 Scoreboard</h1><div class="shared-results-note"><strong>Shared Results:</strong> Finished quiz scores are saved on this browser/device, so other learners using this same site on this device can see them. Cross-device sharing requires an online database or backend.</div>',
+    1
+)
+
+out.write_text(html, encoding="utf-8")
+
+print(f"Updated website created successfully: {out}")
+print(f"Backup of previous version: {backup}")
+print(f"File size: {out.stat().st_size:,} bytes")
